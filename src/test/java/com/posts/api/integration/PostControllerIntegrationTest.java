@@ -1,11 +1,15 @@
 package com.posts.api.integration;
 
-import com.posts.api.integration.config.H2DatabaseConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posts.api.Application;
 import com.posts.api.dto.CreatePostDto;
+import com.posts.api.dto.PostDto;
+import com.posts.api.integration.config.H2DatabaseConfig;
+import com.posts.api.mock.PostMocks;
 import com.posts.api.model.Post;
 import com.posts.api.repository.PostRepository;
+import com.posts.api.utils.CustomMapper;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PostControllerIntegrationTest {
 
 	private static final String POST_POSTS = "/api/v1/posts";
+	private static final String GET_POSTS = "/api/v1/posts";
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -125,6 +130,86 @@ public class PostControllerIntegrationTest {
 		assertEquals(createPostDto.getTitle(), posts.get(0).getTitle());
 		assertEquals(createPostDto.getText(), posts.get(0).getText());
 		assertEquals(createPostDto.getAuthor(), posts.get(0).getAuthor());
+	}
+
+	@Test
+	public void checkSearchCampaignsWithMoreThanOnePageAndItsSorting() throws Exception {
+		List<Post> posts = PostMocks.build();
+
+		postRepository.saveAll(posts);
+
+		String json = mockMvc.perform(MockMvcRequestBuilders.get(GET_POSTS)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isOk())
+			.andReturn().getResponse().getContentAsString();
+
+		JSONObject jsonObject = new JSONObject(json);
+		JSONObject pageableObject = jsonObject.getJSONObject("pageable");
+
+		List<PostDto> capturedPosts = CustomMapper.toArrayList(
+			jsonObject.getJSONArray("content"),
+			PostDto.class
+		);
+
+		assertNotNull(capturedPosts);
+
+		// check pagination fields
+		assertEquals(5, capturedPosts.size());
+		assertFalse(jsonObject.getBoolean("last"));
+		assertEquals(7, jsonObject.getInt("totalElements"));
+		assertEquals(2, jsonObject.getInt("totalPages"));
+		assertEquals(0, pageableObject.getInt("pageNumber"));
+		assertEquals(5, pageableObject.getInt("pageSize"));
+
+		// checking sort by createdAt field
+		assertEquals("Title 6", capturedPosts.get(0).getTitle());
+		assertEquals("Title 5", capturedPosts.get(1).getTitle());
+		assertEquals("Title 2", capturedPosts.get(2).getTitle());
+		assertEquals("Title 1", capturedPosts.get(3).getTitle());
+		assertEquals("Title 4", capturedPosts.get(4).getTitle());
+	}
+
+	@Test
+	public void checkSearchCampaignsWithOnePageAndItsSorting() throws Exception {
+		List<Post> posts = PostMocks.build();
+
+		postRepository.saveAll(posts);
+
+		String json = mockMvc.perform(MockMvcRequestBuilders.get(GET_POSTS)
+			.param("page_number", "0")
+			.param("page_items", "10")
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isOk())
+			.andReturn().getResponse().getContentAsString();
+
+		JSONObject jsonObject = new JSONObject(json);
+		JSONObject pageableObject = jsonObject.getJSONObject("pageable");
+
+		List<PostDto> capturedPosts = CustomMapper.toArrayList(
+			jsonObject.getJSONArray("content"),
+			PostDto.class
+		);
+
+		assertNotNull(capturedPosts);
+
+		// check pagination fields
+		assertEquals(7, capturedPosts.size());
+		assertTrue(jsonObject.getBoolean("last"));
+		assertEquals(7, jsonObject.getInt("totalElements"));
+		assertEquals(1, jsonObject.getInt("totalPages"));
+		assertEquals(0, pageableObject.getInt("pageNumber"));
+		assertEquals(10, pageableObject.getInt("pageSize"));
+
+		// checking sort by createdAt field
+		assertEquals("Title 6", capturedPosts.get(0).getTitle());
+		assertEquals("Title 5", capturedPosts.get(1).getTitle());
+		assertEquals("Title 2", capturedPosts.get(2).getTitle());
+		assertEquals("Title 1", capturedPosts.get(3).getTitle());
+		assertEquals("Title 4", capturedPosts.get(4).getTitle());
+		assertEquals("Title 3", capturedPosts.get(5).getTitle());
+		assertEquals("Title 7", capturedPosts.get(6).getTitle());
 	}
 
 }

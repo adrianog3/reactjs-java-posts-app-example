@@ -1,6 +1,7 @@
 package com.posts.api.mapper;
 
 import com.posts.api.dto.CreatePostDto;
+import com.posts.api.dto.PostDto;
 import com.posts.api.model.Post;
 import org.mapstruct.Mapper;
 
@@ -8,5 +9,7 @@ import org.mapstruct.Mapper;
 public interface PostMapper {
 
 	Post toPost(CreatePostDto postDto);
+
+	PostDto toPostDto(Post post);
 
 }

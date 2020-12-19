@@ -1,20 +1,21 @@
 package com.posts.api.controller;
 
 import com.posts.api.dto.CreatePostDto;
+import com.posts.api.dto.PostDto;
 import com.posts.api.mapper.PostMapper;
 import com.posts.api.model.Post;
 import com.posts.api.service.PostService;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -46,6 +47,37 @@ public class PostController extends CommonController {
 		} catch (Exception e) {
 			log.error("Failed to save post", e);
 			return response(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao adicionar postagem");
+		}
+	}
+
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "When posts is found",
+			content = {@Content(schema = @Schema(implementation = Page.class, subTypes = {PostDto.class}))}
+		),
+		@ApiResponse(responseCode = "500", description = "When an unexpected error happens")
+	})
+	@GetMapping(value = "/posts")
+	public ResponseEntity<?> searchPosts(
+		@RequestParam(value = "page_number", defaultValue = "0") Integer pageNumber,
+		@RequestParam(value = "page_items", defaultValue = "5") Integer pageItems
+	) {
+		try {
+			if (pageNumber < 0) {
+				return response(HttpStatus.BAD_REQUEST, "Número da página deve ser maior ou igual a zero");
+			}
+
+			if (pageItems < 1) {
+				return response(HttpStatus.BAD_REQUEST, "Quantidade de itens por página deve ser maior que zero");
+			}
+
+			Page<PostDto> posts = postService.searchPosts(pageNumber, pageItems);
+
+			return ResponseEntity.status(HttpStatus.OK).body(posts);
+		} catch (Exception e) {
+			log.error("Failed to list posts", e);
+			return response(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao listar postagens");
 		}
 	}
 
