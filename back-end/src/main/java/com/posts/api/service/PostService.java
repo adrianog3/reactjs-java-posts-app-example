@@ -1,6 +1,7 @@
 package com.posts.api.service;
 
 import com.posts.api.dto.PostDto;
+import com.posts.api.exception.EntityNotFoundException;
 import com.posts.api.mapper.PostMapper;
 import com.posts.api.model.Post;
 import com.posts.api.repository.PostRepository;
@@ -29,6 +30,14 @@ public class PostService {
 		);
 
 		return postRepository.findAll(pageRequest).map(postMapper::toPostDto);
+	}
+
+	public void upvote(Long postId) throws EntityNotFoundException {
+		if (!postRepository.existsById(postId)) {
+			throw new EntityNotFoundException("Post not found");
+		}
+
+		postRepository.upvote(postId);
 	}
 
 }

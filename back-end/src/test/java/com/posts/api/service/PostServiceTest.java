@@ -1,6 +1,7 @@
 package com.posts.api.service;
 
 import com.posts.api.dto.PostDto;
+import com.posts.api.exception.EntityNotFoundException;
 import com.posts.api.mapper.PostMapper;
 import com.posts.api.model.Post;
 import com.posts.api.repository.PostRepository;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,6 +85,20 @@ public class PostServiceTest {
 	@Test
 	public void whenPageItemsIsLessThanOneShouldThrowsIllegalArgumentException() {
 		assertThrows(IllegalArgumentException.class, () -> postService.searchPosts(0, 0));
+	}
+
+	@Test
+	public void whenUpvoteNonExistentPostShouldThrowsEntityNotFoundException() {
+		when(postRepository.findById(any())).thenReturn(Optional.empty());
+
+		assertThrows(EntityNotFoundException.class, () -> postService.upvote(1L));
+	}
+
+	@Test
+	public void whenUpvoteThrowsUnexpectedExceptionShouldThrowOut() throws Exception {
+		when(postRepository.existsById(any())).thenThrow(RuntimeException.class);
+
+		assertThrows(RuntimeException.class, () -> postService.upvote(1L));
 	}
 
 }

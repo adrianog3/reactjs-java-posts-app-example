@@ -22,7 +22,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +40,7 @@ public class PostControllerIntegrationTest {
 
 	private static final String POST_POSTS = "/api/v1/posts";
 	private static final String GET_POSTS = "/api/v1/posts";
+	private static final String POST_POSTS_UPVOTE = "/api/v1/posts/%s/upvote";
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -210,6 +213,53 @@ public class PostControllerIntegrationTest {
 		assertEquals("Title 4", capturedPosts.get(4).getTitle());
 		assertEquals("Title 3", capturedPosts.get(5).getTitle());
 		assertEquals("Title 7", capturedPosts.get(6).getTitle());
+	}
+
+	@Test
+	public void whenUpvoteNonExistentPostShouldUpdateDomainAndReturn404() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, 100L);
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.messages[0]", is("Postagem não encontrada")));
+	}
+
+	@Test
+	public void whenUpvoteWithInvalidPostIdShouldReturn400() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, "invalid_post_id");
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.messages[0]", is("Identificador da postagem deve ser um número válido")));
+	}
+
+	@Test
+	public void whenUpvoteExistentPostShouldUpdateDomainAndReturn200() throws Exception {
+		Post post = postRepository.save(
+			Post.builder()
+				.title("Title")
+				.text("This is a text")
+				.author("Author")
+				.votesCount(5L)
+				.createdAt(LocalDateTime.now())
+				.build()
+		);
+
+		String requestUrl = String.format(POST_POSTS_UPVOTE, post.getId());
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isOk());
+
+		Optional<Post> newPost = postRepository.findById(post.getId());
+
+		assertTrue(newPost.isPresent());
+		assertEquals(post.getVotesCount() + 1, newPost.get().getVotesCount());
 	}
 
 }

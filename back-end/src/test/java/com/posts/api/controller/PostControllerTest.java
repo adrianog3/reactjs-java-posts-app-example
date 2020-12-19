@@ -1,9 +1,10 @@
 package com.posts.api.controller;
 
-import com.posts.api.dto.PostDto;
-import com.posts.api.mapper.PostMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posts.api.dto.CreatePostDto;
+import com.posts.api.dto.PostDto;
+import com.posts.api.exception.EntityNotFoundException;
+import com.posts.api.mapper.PostMapper;
 import com.posts.api.model.Post;
 import com.posts.api.service.PostService;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ public class PostControllerTest {
 
 	private static final String POST_POSTS = "/api/v1/posts";
 	private static final String GET_POSTS = "/api/v1/posts";
+	private static final String POST_POSTS_UPVOTE = "/api/v1/posts/%s/upvote";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -213,6 +215,57 @@ public class PostControllerTest {
 			.andExpect(jsonPath("$.content[0].title", is("Title")))
 			.andExpect(jsonPath("$.content[0].text", is("This is a text")))
 			.andExpect(jsonPath("$.content[0].author", is("Author")));
+	}
+
+	@Test
+	public void whenUpvoteThrowsUnexpectedExceptionShouldThrowOut() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, 1L);
+
+		doThrow(RuntimeException.class).when(postService).upvote(any());
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.messages[0]", is("Falha ao adicionar voto")));
+	}
+
+	@Test
+	public void whenUpvoteNonExistentPostShouldReturn404() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, 1L);
+
+		doThrow(EntityNotFoundException.class).when(postService).upvote(any());
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.messages[0]", is("Postagem não encontrada")));
+	}
+
+	@Test
+	public void whenUpvoteWithInvalidPostIdShouldReturn400() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, "invalid_post_id");
+
+		doThrow(EntityNotFoundException.class).when(postService).upvote(any());
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.messages[0]", is("Identificador da postagem deve ser um número válido")));
+	}
+
+	@Test
+	public void whenUpvoteRequestIsValidAndUpdateIsOkShouldReturn200() throws Exception {
+		String requestUrl = String.format(POST_POSTS_UPVOTE, 1L);
+
+		mockMvc.perform(MockMvcRequestBuilders.put(requestUrl)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.accept(MediaType.APPLICATION_JSON_VALUE))
+			.andExpect(status().isOk());
+
+		verify(postService, times(1)).upvote(any());
 	}
 
 }
