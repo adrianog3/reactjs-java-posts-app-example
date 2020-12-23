@@ -46,4 +46,12 @@ export const Styles = styled.div`
     padding-left: 0.65rem;
     font-size: 0.9rem;
   }
+
+  .btn-upvote {
+    opacity: 100;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }
 `;

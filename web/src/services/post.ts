@@ -55,3 +55,18 @@ export async function findPosts(): Promise<IPostsResponse> {
     return { content: [], message: "Falha ao buscar postagens" };
   }
 }
+
+export async function upvotePost(postId: number): Promise<String> {
+  try {
+    await api.put(`/api/v1/posts/${postId}/upvote`, postId);
+    return "";
+  } catch (err) {
+    if (err && err.response && err.response.data) {
+      console.log(err.response.data);
+    } else {
+      console.log(err);
+    }
+
+    return "Falha ao adicionar curtida";
+  }
+}
