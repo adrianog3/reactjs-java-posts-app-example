@@ -88,7 +88,14 @@ export default function CreatePost() {
               />
             </Grid>
           </Grid>
-          <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            style={{ height: 40 }}
+          >
             CRIAR POSTAGEM
           </Button>
         </form>

@@ -1,32 +1,32 @@
+import { Avatar, Divider, Paper } from "@material-ui/core";
+import { ThumbUp } from "@material-ui/icons";
 import React from "react";
-import { Paper } from "@material-ui/core";
-import { Divider } from "@material-ui/core";
-import CardHeader from "./CardHeader";
+import { IPost } from "../../services/post";
+import { Styles } from "./styles";
+import { formatDate } from "../../utils/date_utils";
 
-import { StylesWrapper } from "./styles";
-import CardFooter from "./CardFooter";
-
-function Post() {
+function Post(props: React.PropsWithChildren<IPost>) {
   return (
-    <StylesWrapper>
+    <Styles>
       <Paper className="post" elevation={2}>
-        <CardHeader />
+        <div className="header">
+          <Avatar src="#" />
+          <div className="card-title">
+            <span className="title">{props.author}</span>
+            <span className="subtitle">{formatDate(props.createdAt)}</span>
+          </div>
+        </div>
         <Divider style={{ marginTop: "1.01rem" }} />
         <div>
-          <h2>Kubernetes</h2>
-          <p>
-            Kubernetes (comumente estilizado como K8s) é um sistema de
-            orquestração de contêineres " + "open-source que automatiza a
-            implantação, o dimensionamento e a gestão de aplicações em " +
-            "contêineres. Ele foi originalmente projetado pelo Google e agora é
-            mantido pela " + "Cloud Native Computing Foundation. Ele funciona
-            com uma variedade de ferramentas de " + "conteinerização, incluindo
-            Docker.
-          </p>
+          <h2>{props.title}</h2>
+          <p>{props.text}</p>
         </div>
-        <CardFooter />
+        <div className="footer">
+          <ThumbUp fontSize="small" />
+          <span>{props.votesCount}</span>
+        </div>
       </Paper>
-    </StylesWrapper>
+    </Styles>
   );
 }
 

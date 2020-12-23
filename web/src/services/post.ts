@@ -1,9 +1,17 @@
 import api from "./api";
 
+export interface IPostsResponse {
+  content: IPost[];
+  message?: string;
+}
+
 export interface IPost {
+  id: number;
   author: string;
   title: string;
   text: string;
+  createdAt: string;
+  votesCount: number;
 }
 
 export async function savePost(post: IPost): Promise<String> {
@@ -34,5 +42,16 @@ export async function savePost(post: IPost): Promise<String> {
     }
 
     return "Falha ao criar postagem";
+  }
+}
+
+export async function findPosts(): Promise<IPostsResponse> {
+  try {
+    const response = await api.get<IPostsResponse>("/api/v1/posts");
+
+    return response.data && response.data.content ? response.data : { content: [] };
+  } catch (err) {
+    console.log(err);
+    return { content: [], message: "Falha ao buscar postagens" };
   }
 }

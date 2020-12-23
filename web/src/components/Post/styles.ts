@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const StylesWrapper = styled.span`
+export const Styles = styled.div`
   .post {
     padding: 1rem 1rem 1rem 1rem;
     margin-bottom: 0.8rem;
@@ -11,20 +11,39 @@ export const StylesWrapper = styled.span`
     text-align: left;
   }
 
-  .upvote {
+  .header {
     display: flex;
+    align-items: center;
+    justify-content: left;
+  }
+
+  .header span {
+    padding-left: 0.8rem;
+  }
+
+  .card-title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-title .title {
+    padding-bottom: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .card-title .subtitle {
+    color: #757575;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: left;
     align-items: center;
   }
 
-  .upvote span {
-    padding: 0.5rem;
-  }
-
-  .upvote button {
-    opacity: 100;
-    background-color: transparent;
-    border: none;
-    outline: none;
-    cursor: pointer;
+  span {
+    padding-left: 0.65rem;
+    font-size: 0.9rem;
   }
 `;
