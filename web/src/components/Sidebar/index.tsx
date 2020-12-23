@@ -11,6 +11,7 @@ import { AddBox, Home } from "@material-ui/icons";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import React from "react";
 import useSidebar from "../../context/Sidebar";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -39,10 +40,6 @@ export default function PersistentDrawerLeft() {
     setOpen(false);
   };
 
-  function handleHomeClick() {
-    setOpen(false);
-  }
-
   return (
     <div>
       <CssBaseline />
@@ -61,23 +58,17 @@ export default function PersistentDrawerLeft() {
         </div>
         <Divider />
         <List>
-          <ListItem button key="1" onClick={handleHomeClick}>
+          <ListItem button key="1" component={Link} to="/" onClick={handleDrawerClose}>
             <ListItemIcon>
               <Home fontSize="small" />
             </ListItemIcon>
-            <ListItemText
-              primary="Home"
-              classes={{ primary: classes.multiline }}
-            />
+            <ListItemText primary="Home" classes={{ primary: classes.multiline }} />
           </ListItem>
-          <ListItem button key="2">
+          <ListItem button key="2" component={Link} to="/create-post" onClick={handleDrawerClose}>
             <ListItemIcon>
               <AddBox fontSize="small" />
             </ListItemIcon>
-            <ListItemText
-              primary="Cadastrar Post"
-              classes={{ primary: classes.multiline }}
-            />
+            <ListItemText primary="Criar Postagem" classes={{ primary: classes.multiline }} />
           </ListItem>
         </List>
       </Drawer>
